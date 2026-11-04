@@ -3,3 +3,7 @@ phase0/dist/
 phase0/coverage/
 *.log
 .DS_Store
+.wxt/
+.output/
+coverage/
+artifacts/

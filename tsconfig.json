@@ -1,0 +1,17 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "useUnknownInCatchVariables": true,
+    "skipLibCheck": true,
+    "types": ["chrome", "node", "vitest/globals", "@testing-library/jest-dom"]
+  },
+  "include": ["entrypoints", "src", "tests", "wxt.config.ts", "vitest.config.ts", ".wxt/wxt.d.ts"],
+  "exclude": ["phase0/tests", "node_modules", ".output"]
+}
