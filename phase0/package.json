@@ -12,7 +12,8 @@
     "build": "npm run typecheck && node scripts/build.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run build && npm test"
+    "smoke:bundle": "node scripts/bundle-smoke.mjs",
+    "check": "npm run build && npm test && npm run smoke:bundle"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

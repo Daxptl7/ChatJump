@@ -8,3 +8,4 @@ export * from './mutationTracker';
 export * from './scrollEngine';
 export * from './dateSearch';
 export * from './benchmark';
+export * from './developerPanel';
