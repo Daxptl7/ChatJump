@@ -2,6 +2,9 @@ import type { BrowserClient } from '../types/extension';
 import { ExtensionError } from '../utils/errors';
 import { isConnectionResponse } from './messages';
 import type { ConnectionResponse } from './messages';
+import { isSnapshotResponse } from './messages';
+import type { SnapshotRequestType } from './messages';
+import type { ConversationSnapshot } from '../core/messageTypes';
 
 /** Bounds tab queries and messages, including APIs that never settle. */
 export function withDeadline<T>(operation: () => Promise<T>, signal?: AbortSignal, timeoutMs = 2000): Promise<T> {
@@ -24,9 +27,15 @@ export function withDeadline<T>(operation: () => Promise<T>, signal?: AbortSigna
 }
 
 export async function checkConnection(client: BrowserClient, tabId: number, signal?: AbortSignal): Promise<ConnectionResponse> {
+  const response = await request(client, tabId, 'GET_CONNECTION_STATUS', signal);
+  if (!isConnectionResponse(response)) throw new ExtensionError('unexpected-response');
+  return response;
+}
+
+async function request(client: BrowserClient, tabId: number, type: 'GET_CONNECTION_STATUS' | SnapshotRequestType, signal?: AbortSignal): Promise<unknown> {
   let response: unknown;
   try {
-    response = await withDeadline(() => client.sendMessage(tabId, { type: 'GET_CONNECTION_STATUS' }), signal);
+    response = await withDeadline(() => client.sendMessage(tabId, { type }), signal);
   } catch (error) {
     if (error instanceof ExtensionError) throw error;
     // Only inspect the browser's error in memory; never show/log its raw URL or stack.
@@ -34,6 +43,11 @@ export async function checkConnection(client: BrowserClient, tabId: number, sign
     const missing = /receiving end does not exist|could not establish connection|message port closed/i.test(message);
     throw new ExtensionError(missing ? 'script-unavailable' : 'messaging-failed');
   }
-  if (!isConnectionResponse(response)) throw new ExtensionError('unexpected-response');
   return response;
+}
+
+export async function getConversationSnapshot(client: BrowserClient, tabId: number, signal?: AbortSignal, type: SnapshotRequestType = 'GET_RENDERED_MESSAGE_SUMMARY'): Promise<ConversationSnapshot> {
+  const response = await request(client, tabId, type, signal);
+  if (!isSnapshotResponse(response, type)) throw new ExtensionError('unexpected-response');
+  return response.snapshot;
 }

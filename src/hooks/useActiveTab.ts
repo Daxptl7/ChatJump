@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { checkConnection, withDeadline } from '../messaging/messagingService';
 import { createBrowserClient } from '../services/browserClient';
 import { detectPlatform } from '../services/platformDetection';
-import type { BrowserClient, ConnectionState } from '../types/extension';
+import type { ActiveTab, BrowserClient, ConnectionState } from '../types/extension';
 import { errorCode, ExtensionError } from '../utils/errors';
 
-export function useActiveTab(providedClient?: BrowserClient): { connection: ConnectionState; refresh: () => void } {
+export function useActiveTab(providedClient?: BrowserClient): { connection: ConnectionState; refresh: () => void; activeTab: ActiveTab | undefined; client: BrowserClient | undefined } {
   const client = useMemo(() => providedClient ?? createBrowserClient(), [providedClient]);
   const [connection, setConnection] = useState<ConnectionState>({ status: 'checking' });
+  const [activeTab, setActiveTab] = useState<ActiveTab | undefined>(undefined);
   const pending = useRef<AbortController | undefined>(undefined);
 
   const refresh = useCallback((): void => {
@@ -19,6 +20,7 @@ export function useActiveTab(providedClient?: BrowserClient): { connection: Conn
       await Promise.resolve();
       if (!current()) return;
       setConnection({ status: 'checking' });
+      setActiveTab(undefined);
       try {
         if (!client) throw new ExtensionError('browser-unavailable');
         const tab = await withDeadline(client.queryActiveTab, controller.signal);
@@ -31,6 +33,7 @@ export function useActiveTab(providedClient?: BrowserClient): { connection: Conn
         if (!current()) return;
         if (latest?.id !== tab.id || latest.url !== tab.url || latest.status === 'loading') throw new ExtensionError('tab-changed');
         setConnection({ status: 'connected', conversationDetected: null });
+        setActiveTab({ id: tab.id, url: tab.url });
       } catch (error) {
         if (!current()) return;
         const code = errorCode(error);
@@ -45,5 +48,5 @@ export function useActiveTab(providedClient?: BrowserClient): { connection: Conn
     return () => { pending.current?.abort(); unsubscribe?.(); };
   }, [client, refresh]);
 
-  return { connection, refresh };
+  return { connection, refresh, activeTab, client };
 }

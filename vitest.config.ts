@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    environmentOptions: { jsdom: { url: 'https://www.instagram.com/direct/t/synthetic-phase2/' } },
     include: ['tests/**/*.test.{ts,tsx}'],
     setupFiles: ['tests/setup.ts'],
     clearMocks: true,
