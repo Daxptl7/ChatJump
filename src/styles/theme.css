@@ -1,0 +1,37 @@
+:root {
+  color-scheme: light;
+  --background: #FFFFFF;
+  --surface: #F5F5F5;
+  --text-primary: #171717;
+  --text-secondary: #666666;
+  --border: #E5E5E5;
+  --button-primary: #171717;
+  --button-text: #FFFFFF;
+  --success: #16703C;
+  --error: #B42318;
+  --information: #2563EB;
+}
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-primary: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --color-line: var(--border);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-information: var(--information);
+}
+* { box-sizing: border-box; }
+body { width: 360px; margin: 0; background: var(--background); color: var(--text-primary); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; font-size: 14px; }
+button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"] { border-radius: 0 !important; }
+button { cursor: pointer; font: inherit; font-weight: 500; border: 1px solid var(--border); }
+input, select, textarea { border-radius: 0; font: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--information); outline-offset: 2px; }
+button:disabled { cursor: not-allowed; background: var(--surface); color: var(--text-secondary); border-color: var(--border); }
+.popup-shell { width: 100%; max-width: 360px; overflow-wrap: anywhere; }
+@media (min-width: 280px) and (max-width: 359px) { body { width: 100vw; } }
+.primary-button { min-height: 40px; padding: 9px 12px; background: var(--button-primary); color: var(--button-text); border-color: var(--button-primary); }
+.secondary-button { min-height: 36px; padding: 8px 12px; background: var(--background); color: var(--text-primary); border-color: var(--text-secondary); }
+.secondary-button:hover:enabled { background: var(--surface); }
+.date-input { display: block; min-width: 0; min-height: 40px; padding: 8px 10px; background: var(--background); color: var(--text-primary); border: 1px solid var(--text-secondary); }
+.date-input[aria-invalid="true"] { border-color: var(--error); }
