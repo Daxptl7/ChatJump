@@ -1,38 +1,42 @@
-# Architecture and file inventory
+# ChatJump architecture and complete file inventory
 
-Phase 1 keeps browser APIs behind a client boundary, validates runtime messages, and isolates future platform DOM work from the React popup. Phase 0 remains its own independently installed project.
+Current implementation: Phase 1 extension foundation plus Phase 2 configurable DOM adapter. Live Instagram compatibility remains **UNVERIFIED**; the shipped selector profile does not claim positive detection. Search is disabled. See [Phase 2 implementation and actual validation](phase2-implementation.md) for selector calibration, lifecycle decisions, snapshot semantics, measurements, manual scenarios, and Phase 3 prerequisites. [Phase 1 validation](phase1-validation.md) remains the historical foundation report.
+
+## Runtime boundaries
 
 | Boundary | Responsibility |
 |---|---|
-| `entrypoints/popup/` | React popup bootstrap and layout |
-| `entrypoints/instagram.content.ts` | Declarative Instagram-only listener lifecycle |
-| `src/components/` | Semantic UI components and explanatory states |
-| `src/hooks/useActiveTab.ts` | Bounded tab/message lifecycle, subscriptions, stale-response rejection |
-| `src/messaging/` | Runtime request/response validators, deadlines, trusted listener |
-| `src/services/` | Native Chrome API boundary and URL-only platform detection |
-| `src/adapters/instagram/` | Readiness metadata; conversation detection deliberately unknown |
-| `src/types/`, `src/utils/` | Shared types, fixed error messages, calendar selection |
-| `src/styles/theme.css` | Solid palette, rectangular controls, focus, intrinsic popup sizing |
-| `tests/` | Platform, messaging, date, UI lifecycle, and design/contrast tests |
-| `scripts/` | Original icon rasterization and actual browser/HMR smoke checks |
-| `public/icon/` | Original local SVG and generated PNG extension icons |
-| `docs/` | Validation evidence, actual screenshots, architecture |
-| `phase0/` | Preserved feasibility implementation and live-validation protocol |
+| `entrypoints/popup/` | React popup, existing date and connection controls, conversation metadata |
+| `entrypoints/instagram.content.ts` | Declarative isolated-world WXT entrypoint; invalidation cleanup |
+| `src/core/` | Shared adapter, internal message types, serializable snapshot and strict validator |
+| `src/adapters/instagram/selectors.ts` | Centralized manually verified layout configuration; production defaults to unverified |
+| Instagram detectors and parser | Unique root/list/identity, scoped deduplicated messages, strict dates, validated groups, read-only scroll geometry |
+| `InstagramAdapter.ts`, `domObserver.ts`, `runtime.ts` | Current snapshot, identity invalidation, one scoped observer, timers/listeners/session cleanup |
+| `layoutDiagnostics.ts` | Sanitized internal structure and actual timing/counter diagnostics |
+| `src/messaging/` | Same-extension UI requests, compatible Phase 1 handshake, strict fresh Phase 2 snapshots |
+| `src/hooks/` | Active-tab validation and bounded sequential snapshot requests; stale response rejection |
+| `src/components/` | Platform-neutral minimal presentation and accessible controls |
+| `src/services/`, `src/types/`, `src/utils/` | Narrow browser API boundary, platform routing, date-input validation, fixed errors |
+| `phase0/` | Preserved feasibility prototype; only pure timestamp/date/range helpers and sanitized DOM inspector reused |
+| `tests/instagram/`, `tests/browser/` | Anonymous synthetic fixtures and test-only adapter configuration |
+| `scripts/` | Actual extension popup, development HMR, and native isolated-world adapter harnesses |
 
-There is no production background entrypoint. WXT generates its own development worker for reload tooling. Only Phase 0's pure date validator is imported into the extension; its unverified DOM/search engine is not imported.
+The popup communicates directly with the content script; production needs no background worker or persistence. Internal nodes/opaque identities never cross messaging. Snapshot fields contain only detection metadata; unreliable counts are omitted. All date coverage describes current rendered nodes, not full conversation history. Root switching clears previous message references. WXT invalidation disposes the complete runtime.
 
-## Complete source inventory
+## Complete source tree
 
-The tree lists every project file, including the preserved Phase 0 files. Generated dependency/build/runtime folders are listed separately below.
+Generated dependency/build/artifact directories are excluded. This lists every source/configuration/documentation/asset file, including the preserved Phase 0 project.
 
 ```text
 Chatjump/
 ├── docs/
 │   ├── images/
 │   │   ├── popup-connected.png
+│   │   ├── popup-phase2-unverified.png
 │   │   └── popup-unsupported.png
 │   ├── architecture.md
-│   └── phase1-validation.md
+│   ├── phase1-validation.md
+│   └── phase2-implementation.md
 ├── entrypoints/
 │   ├── popup/
 │   │   ├── App.tsx
@@ -87,19 +91,36 @@ Chatjump/
 │   ├── browser-smoke.mjs
 │   ├── dev-smoke.mjs
 │   ├── generate-icons.mjs
+│   ├── phase2-browser-smoke.mjs
 │   └── popup-session.mjs
 ├── src/
 │   ├── adapters/
 │   │   └── instagram/
-│   │       └── index.ts
+│   │       ├── InstagramAdapter.ts
+│   │       ├── conversationDetector.ts
+│   │       ├── dateGroupDetector.ts
+│   │       ├── domObserver.ts
+│   │       ├── index.ts
+│   │       ├── layoutDiagnostics.ts
+│   │       ├── messageDetector.ts
+│   │       ├── runtime.ts
+│   │       ├── scrollContainerDetector.ts
+│   │       ├── selectors.ts
+│   │       └── timestampParser.ts
 │   ├── components/
 │   │   ├── ActionButton.tsx
 │   │   ├── ConnectionStatus.tsx
+│   │   ├── ConversationStatus.tsx
 │   │   ├── DateSelector.tsx
 │   │   ├── Header.tsx
 │   │   └── StatusMessage.tsx
+│   ├── core/
+│   │   ├── ChatAdapter.ts
+│   │   ├── messageTypes.ts
+│   │   └── snapshot.ts
 │   ├── hooks/
-│   │   └── useActiveTab.ts
+│   │   ├── useActiveTab.ts
+│   │   └── useConversationSnapshot.ts
 │   ├── messaging/
 │   │   ├── contentListener.ts
 │   │   ├── messages.ts
@@ -116,6 +137,18 @@ Chatjump/
 │       ├── date.ts
 │       └── errors.ts
 ├── tests/
+│   ├── browser/
+│   │   └── adapter-entry.ts
+│   ├── instagram/
+│   │   ├── conversationDetector.test.ts
+│   │   ├── dateGroupDetector.test.ts
+│   │   ├── domObserver.test.ts
+│   │   ├── fixtures.ts
+│   │   ├── integration.test.ts
+│   │   ├── messageDetector.test.ts
+│   │   ├── popup.test.tsx
+│   │   ├── scrollContainerDetector.test.ts
+│   │   └── timestampParser.test.ts
 │   ├── date.test.ts
 │   ├── design.test.ts
 │   ├── fixtures.ts
@@ -133,8 +166,55 @@ Chatjump/
 └── wxt.config.ts
 ```
 
-Generated and Git-ignored: `node_modules/`, `phase0/node_modules/`, `.wxt/`, `.output/chrome-mv3/`, `.output/chrome-mv3-dev/`, `phase0/dist/`, and `artifacts/`. Production output contains the generated manifest, `popup.html`, hashed popup JS/CSS assets, Instagram content script, and local icons.
+Generated and Git-ignored: `node_modules/`, `phase0/node_modules/`, `.wxt/`, `.output/`, `phase0/dist/`, coverage and `artifacts/`. Production `.output/chrome-mv3` contains `manifest.json`, `popup.html`, hashed popup assets, the Instagram content script, and local icons. `.output/chrome-mv3-dev` additionally contains WXT development tooling; distribute only the production build.
 
-## Creation and modification scope
+## Phase 2 files created
 
-Phase 1 creates the root package/configuration files, `entrypoints/`, `src/`, `tests/`, `public/`, `scripts/`, and `docs/`. It updates only the existing root `README.md` and `.gitignore`. No file inside `phase0/` is modified. Git history keeps the Phase 0 detection, controlled search, and developer-panel/report sessions as separate commits, followed by separate Phase 1 foundation, popup, and browser-validation/documentation commits.
+The following files are newly added relative to the published Phase 1 baseline:
+
+- `docs/images/popup-phase2-unverified.png`
+- `docs/phase2-implementation.md`
+- `scripts/phase2-browser-smoke.mjs`
+- `src/adapters/instagram/InstagramAdapter.ts`
+- `src/adapters/instagram/conversationDetector.ts`
+- `src/adapters/instagram/dateGroupDetector.ts`
+- `src/adapters/instagram/domObserver.ts`
+- `src/adapters/instagram/layoutDiagnostics.ts`
+- `src/adapters/instagram/messageDetector.ts`
+- `src/adapters/instagram/runtime.ts`
+- `src/adapters/instagram/scrollContainerDetector.ts`
+- `src/adapters/instagram/selectors.ts`
+- `src/adapters/instagram/timestampParser.ts`
+- `src/components/ConversationStatus.tsx`
+- `src/core/ChatAdapter.ts`
+- `src/core/messageTypes.ts`
+- `src/core/snapshot.ts`
+- `src/hooks/useConversationSnapshot.ts`
+- `tests/browser/adapter-entry.ts`
+- `tests/instagram/conversationDetector.test.ts`
+- `tests/instagram/dateGroupDetector.test.ts`
+- `tests/instagram/domObserver.test.ts`
+- `tests/instagram/fixtures.ts`
+- `tests/instagram/integration.test.ts`
+- `tests/instagram/messageDetector.test.ts`
+- `tests/instagram/popup.test.tsx`
+- `tests/instagram/scrollContainerDetector.test.ts`
+- `tests/instagram/timestampParser.test.ts`
+
+## Phase 2 files modified
+
+- `README.md`
+- `docs/architecture.md`
+- `entrypoints/instagram.content.ts`
+- `entrypoints/popup/App.tsx`
+- `package.json`
+- `scripts/browser-smoke.mjs`
+- `src/hooks/useActiveTab.ts`
+- `src/messaging/contentListener.ts`
+- `src/messaging/messages.ts`
+- `src/messaging/messagingService.ts`
+- `tests/fixtures.ts`
+- `tests/setup.ts`
+- `vitest.config.ts`
+
+No Phase 0 source, tests, reports, package files, root dependency lockfile, production permissions, or Git history were changed. Phase 1 handshake and existing test coverage are preserved. Phase 2 work is recorded here as implementation scope; this inventory makes no commit or publication claim.

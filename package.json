@@ -18,6 +18,7 @@
     "test:watch": "vitest",
     "test:phase0": "npm --prefix phase0 run check",
     "test:browser": "node scripts/browser-smoke.mjs",
+    "test:browser:phase2": "node scripts/phase2-browser-smoke.mjs",
     "test:dev": "node scripts/dev-smoke.mjs",
     "check": "npm run typecheck && npm run lint && npm test && npm run build"
   },

@@ -26,7 +26,7 @@ try {
   // No private traffic exists in this new profile. Fulfill only test documents and block outside requests.
   await context.route('**/*', async (route) => {
     const url = route.request().url();
-    if (url === 'https://www.instagram.com/__chatjump_phase1_fixture__/' || url === 'https://example.test/chatjump-fixture/') {
+    if (url === 'https://www.instagram.com/__chatjump_phase1_fixture__/' || url === 'https://www.instagram.com/direct/t/chatjump-phase2-fixture/' || url === 'https://example.test/chatjump-fixture/') {
       await route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>ChatJump synthetic browser fixture</title><main><h1>Controlled fixture</h1><p>No account or chat data.</p></main>' });
     } else if (url.startsWith('chrome-extension:')) await route.continue();
     else await route.abort();
@@ -66,6 +66,12 @@ try {
   let popup = await openPopup(); await connected(popup);
   await popup.until(() => document.documentElement.clientWidth >= 360 && document.documentElement.scrollWidth <= document.documentElement.clientWidth, 'native popup sizing');
   results.checks.push('Actual toolbar popup opened; declarative content script and runtime handshake passed on synthetic Instagram-origin fixture');
+  await popup.until(() => [...document.querySelectorAll('[role="status"]')].some((element) => element.textContent === 'No conversation selected'), 'non-DM conversation metadata');
+  const summary = await popup.evaluate(async () => {
+    const [active] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    return chrome.tabs.sendMessage(active.id, { type: 'GET_CONVERSATION_STATUS' }, { frameId: 0 });
+  });
+  assert.equal(summary.type, 'GET_CONVERSATION_STATUS'); assert.equal(summary.snapshot.status, 'not-open'); assert.equal(summary.snapshot.renderedMessageCount, undefined);
   assert.equal(await popup.evaluate(() => [...document.querySelectorAll('button')].find((button) => button.textContent === 'Search Messages').disabled), true);
   await popup.evaluate(() => [...document.querySelectorAll('button')].find((button) => button.textContent === 'Check Connection').click());
   await connected(popup);
@@ -91,6 +97,11 @@ try {
   await popup.close();
   await tab.reload(); popup = await openPopup(); await connected(popup); await popup.close();
   results.checks.push('Connection re-established after fixture tab reload');
+  await tab.goto('https://www.instagram.com/direct/t/chatjump-phase2-fixture/');
+  popup = await openPopup(); await connected(popup);
+  await popup.until(() => [...document.querySelectorAll('[role="status"]')].some((element) => element.textContent === 'Unsupported layout'), 'unverified DM selector safety');
+  await screenshot(popup, 'artifacts/popup-phase2-unverified.png'); await popup.close();
+  results.checks.push('Phase 2 summary requests work; non-DM and unverified DM layouts expose no fabricated message counts');
   await tab.goto('https://example.test/chatjump-fixture/');
   popup = await openPopup(); await popup.until(() => document.querySelector('[role="status"]')?.textContent === 'Not on Instagram', 'unsupported active site');
   await screenshot(popup, 'artifacts/popup-unsupported.png'); await popup.close();
