@@ -1,0 +1,5 @@
+node_modules/
+phase0/dist/
+phase0/coverage/
+*.log
+.DS_Store

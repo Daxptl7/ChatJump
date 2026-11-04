@@ -1,0 +1,24 @@
+{
+  "name": "chatjump-phase0",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-only Instagram date navigation feasibility experiment",
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0 || >=26.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && node scripts/build.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "jsdom": "^29.1.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
