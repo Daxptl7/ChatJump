@@ -4,3 +4,7 @@ export * from './conversationDetector';
 export * from './domInspector';
 export * from './timestampDetector';
 export * from './scrollDetector';
+export * from './mutationTracker';
+export * from './scrollEngine';
+export * from './dateSearch';
+export * from './benchmark';
